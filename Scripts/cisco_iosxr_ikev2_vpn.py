@@ -1,0 +1,7 @@
+print ('\nWelcome to the VPN Builder by Simon Riddle')
+print ('\nPlease choose the relevant number below, for the type of device you would like to build:-')
+print ('\n\n   1. Cisco ASA')
+print ('   2. Cisco IOS')
+print ('   3. Cisco IOS-XE')
+print ('   4. Cisco IOS-XR')
+menu = input('\nMake your selection: ')
