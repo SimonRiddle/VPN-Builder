@@ -1,0 +1,44 @@
+#create vpn object(s)
+object network VPN-<%SOURCE-OBJECT%>
+ subnet <%SOURCE-RANGE%> <%SOURCE-SUBNET-MASK%>
+object network VPN-<%DESTINATION-OBJECT%>
+ subnet <%DESTINATION-RANGE%> <%DESTINATION-SUBNET-MASK%>
+
+#encryption domains
+access-list VPN-<%DESTINATION-OBJECT%> extended permit ip object-group VPN-<%SOURCE-OBJECT%> object-group VPN-<%DESTINATION-OBJECT%>
+
+#nonat(twicenat)
+nat (INSIDE,OUTSIDE) source static VPN-<%SOURCE-OBJECT%> VPN-<%SOURCE-OBJECT%> destination static VPN-<%DESTINATION-OBJECT%> VPN-<%DESTINATION-OBJECT%> no-proxy-arp route-lookup
+
+#create transform-set 
+crypto ipsec ikev2 ipsec-proposal AES256-SHA256
+ protocol esp encryption aes-256
+ protocol esp integrity sha-256
+#
+crypto map IPSEC-VPN <%MAP-NUMBER%> match address VPN-<%DESTINATION-OBJECT%>
+crypto map IPSEC-VPN <%MAP-NUMBER%> set peer <%VPN-PEER%>
+crypto map IPSEC-VPN <%MAP-NUMBER%> set pfc
+crypto map IPSEC-VPN <%MAP-NUMBER%> set ike2 ipsec-proposal AES256-SHA256
+
+#create ikev2 policies
+crypto ikev2 policy 1
+ encryption aes-256
+ integrity sha256
+ group 19
+ prf sha256
+ lifetime seconds 86400
+
+#create tunnel group and define the pre-shared key
+tunnel-group <%VPN-PEER%> type ipsec-l2l
+tunnel-group <%VPN-PEER%> ipsec-attributes
+ ikev2 remote-authentication pre-shared-key <%PRE-SHARED-KEY%>
+ ikev2 local-authentication pre-shared-key <%PRE-SHARED-KEY%>
+
+#Enable IKEv2 to the outside interface
+crypto ikev2 enable outside
+
+----------------------------
+
+#verification commands
+show crypto isakmp sa
+show crypto ipsec sa
